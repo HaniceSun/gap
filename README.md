@@ -71,7 +71,7 @@ visualize the prediction using donut plot ([14-DonutPlot.py](14-DonutPlot.py)), 
 
 ![](HPAP_Donor_Summary_GeneticAncestry_race.png)
 
-![](HPAP_Donor_Summary_GeneticAncestry_SuperPopulation.png)
+![](HPAP_Donor_Summary_GeneticAncestry_SupPopulation.png)
 
 ![](HPAP_Donor_Summary_Sankey.png)
 
