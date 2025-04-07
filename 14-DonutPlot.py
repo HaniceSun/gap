@@ -1,7 +1,12 @@
-from pyst import *
 import sys
 import os
 import colorcet
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib
+matplotlib.use('agg')
+import pylab as plt
 
 cout = ['#ffd845', '#710027', '#778500', '#018ead', '#c44cfd']
 cin = sns.color_palette('tab20') + sns.color_palette('Set2')

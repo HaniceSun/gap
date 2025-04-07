@@ -27,6 +27,6 @@ def GetTOPMedResults(CMD, PWD, DIR, CH=['chr' + str(x) for x in range(1, 23)]):
 
 
 CMD = 'curl -sL https://imputation.biodatacatalyst.nhlbi.nih.gov/get/1335972/63b34c1040317038847773b9f2a52d1dca2e4d7a222e3be39d7eedf920928dc9 | bash'
-PWD = 'XCoBhVZe3ZwxF3'
+PWD = '..'
 DIR='GenotypingStanford896S'
 GetTOPMedResults(CMD, PWD, DIR)

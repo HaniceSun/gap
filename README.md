@@ -67,6 +67,13 @@ visualize the prediction using donut plot ([14-DonutPlot.py](14-DonutPlot.py)), 
 
 ![HIPP100_DonutPlot.svg](HIPP100_DonutPlot.svg)
 
+## Step 7: compare self-reported race and genetic ancestry
+
+![](HPAP_Donor_Summary_GeneticAncestry_race-Condition.png)
+
+![](HPAP_Donor_Summary_GeneticAncestry_SuperPopulation.png)
+
+![](HPAP_Donor_Summary_Sankey.png)
 
 
 ----------
