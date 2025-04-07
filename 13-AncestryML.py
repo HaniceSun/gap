@@ -149,6 +149,11 @@ class Trainer:
             if s.__name__ == 'confusion_matrix':
                 m_train = ','.join([str(x) for x in m_train.ravel()])
                 m_test = ','.join([str(x) for x in m_test.ravel()])
+            elif s.__name__ == 'classification_report':
+                print('train dataset classification_report:')
+                print(m_train)
+                print('test dataset classification_report:')
+                print(m_test)
 
             self.log_metrics(model_name, selection_method, s.__name__, m_train, 'train')
             self.log_metrics(model_name, selection_method, s.__name__, m_test, 'test')
