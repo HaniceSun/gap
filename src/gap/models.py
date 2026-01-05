@@ -23,6 +23,8 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import VotingClassifier
+from sklearn.svm import SVC
+from sklearn.svm import SVR
 from xgboost import XGBClassifier
 from xgboost import XGBRegressor
 from lightgbm import LGBMClassifier
@@ -154,6 +156,9 @@ class GapLearn():
                 model.fit(X_train, y_train, verbose=False)
         elif model_name == 'random_forest':
             model = model_class(**params, random_state=random_state, verbose=0)
+            model.fit(X_train, y_train)
+        elif model_name == 'svm':
+            model = model_class(**params, probability=True, random_state=random_state, verbose=0)
             model.fit(X_train, y_train)
         else:
             model = model_class(**params, random_state=random_state)

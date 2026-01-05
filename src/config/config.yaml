@@ -23,7 +23,7 @@ models:
       learning_rate: [0.05, 0.1]
       n_estimators: [100, 500]
   svm:
-    class: SVMClassifier
+    class: SVC
     params:
       kernel: ['linear', 'rbf']
       C: [0.1, 1, 10, 100]
