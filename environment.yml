@@ -1,0 +1,24 @@
+name: gap
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.13
+  - plink=1.90b7.7
+  - bcftools=1.23
+  - setuptools=80.9.0
+  - numpy=2.3.5
+  - matplotlib=3.10.8
+  - seaborn=0.13.2
+  - pandas=2.3.3
+  - PyYAML=6.0.3
+  - scikit-learn=1.8.0
+  - joblib=1.5.1
+  - xgboost=3.1.2
+  - lightgbm=4.6.0
+  - catboost=1.2.8
+  - pip
+  - pip:
+      - -r requirements.txt
+      - -e . 

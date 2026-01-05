@@ -1,79 +1,69 @@
-# Machine learning prediction of ancestry from the genotyping data
+<p align="left">
+<img src="assets/logo.png" alt="dustle logo" width="150"/>
+</p>
 
-Han Sun, PhD, Gloyn Lab, Stanford University
+# Genetic Ancestry Prediction (GAP)
 
-----------
+## Overview
 
-## Outline: the pipeline
+GAP is a Python package, developed at the [Translational Genomics Lab](https://med.stanford.edu/genomics-of-diabetes.html) lead by Dr. Anna Gloyn at Stanford University, for predicting genetic ancestry from genotyping data using machine learning techniques. It provides tools for data preprocessing, model training, and evaluation to facilitate accurate ancestry inference. It shows superior performance compared to existing methods in ADMIXTURE and KING package when benchmarking against self-reported races from [The Human Pancreas Analysis Program](https://hpap.pmacs.upenn.edu/). [HLA imputation](https://github.com/HaniceSun/hla6) conditioned on the predicted genetic ancestry shows improved accuracy when scoring against gold-standard HLA typing data. GAP has been utilized in [Integrated Islet Distribution Program](https://iidp.coh.org/) to report genetic ancestry in addition to genetic risk scores of type 1 and type 2 diabetes.
 
-![Pipeline.png](Pipeline.png)
+## Pipeline
+![](assets/pipeline.png)
 
-----------
+## Installation
 
-## Step 1: download the training dataset with samples of known ancestry
+- using conda
 
-1. download the high coverage whole genome sequencing data from 1000 genome project using the script ([01-Download_1000G_30x_hg38.sh](01-Download_1000G_30x_hg38.sh))
+```
+git clone git@github.com:HaniceSun/gap.git
+cd gap
+conda env create -f environment.yml
+conda activate gap
+```
 
-2. extract the 2504 unrelated samples from the 3202 samples ([02-SplitRelatedUnrelatedSamples.py](02-SplitRelatedUnrelatedSamples.py); [03-ConcatVCFsToBimFamBed.sh](03-ConcatVCFsToBimFamBed.sh))
+# Quick Start
 
-3. (optional) update variant ID in the bim file with rsID ([04-UpdateBimRs.py](04-UpdateBimRs.py))
+```
+input_vcf='INPUT.vcf.gz'
 
-----------
+gap get-reference-data --output_dir=data
+gap merge-dataset-with-reference --dataset $input_vcf
+gap feature-engineering
 
-## Step 2: impute the genotyping data using TOPMed server
+gap add-labels
+gap split-train-test --input data/features_labeled_Population.txt --test_size 0.2
+gap split-train-test --input data/features_labeled_Superpopulation.txt --test_size 0.2
 
-1. merge multiple QCed arrays using plink and then update build using [update_build.sh](https://www.chg.ox.ac.uk/~wrayner/strand/); export to the vcf format and split by chromosomes ([05-PedMap2BimFamBedVcf.sh](05-PedMap2BimFamBedVcf.sh); [06-SplitChrBgzip.py](06-SplitChrBgzip.py))
+config=config.yaml
+train=data/features_labeled_Superpopulation_train.txt
+test=data/features_labeled_Superpopulation_test.txt
+label=data/features_labels_Superpopulation.txt
+pred=data/features_ToPred.txt
+metrics=data/metrics_Superpopulation.txt
+model=model_Superpopulation.pkl
+predicted=Predicted_Superpopulation.txt
+gap train-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics
+gap eval-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics --model_file=$model
+gap predict --input=$pred --output=$predicted --label_file=$label --metrics_file=$metrics --model_file=$model
 
-2. submit the vcf files to TOPMed server for imputation ([07-SubmitToTOPMed.sh](07-SubmitToTOPMed.sh))
+config=config.yaml
+train=data/features_labeled_Population_train.txt
+test=data/features_labeled_Population_test.txt
+label=data/features_labels_Population.txt
+pred=data/features_ToPred.txt
+metrics=data/metrics_Population.txt
+model=model_Population.pkl
+predicted=Predicted_Population.txt
+gap train-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics
+gap eval-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics --model_file=$model
+gap predict --input=$pred --output=$predicted --label_file=$label --metrics_file=$metrics --model_file=$model
+```
 
-3. downlad and concat the imputed vcf files ([08-GetTOPMedResults.py](08-GetTOPMedResults.py))
+## Author and License
 
-4. (optional) update variant ID in the bim file with rsID ([09-UpdateVCFrs.sh](09-UpdateVCFrs.sh))
+**Author:** Han Sun
 
-5. export bed format from the vcf file ([10-vcf2bed.sh](10-vcf2bed.sh))
+**Email:** hansun@stanford.edu
 
-
-----------
-
-## Step 3: merge the training dataset and the imputed genotyping dataset
-
-
-merge the datasets using the script ([11-MergeDatasets.py](11-MergeDatasets.py)), based on the [post](https://martha-labbook.netlify.app/posts/extracting-data-for-variants-common-in-both-file-sets/) to handle multiple positions and alleles. 
-
-
-----------
-
-## Step 4: PCA analysis of the merged dataset
-
-doing the PCA analysis on the merged dataset using the R package bigsnpr, including relatedness testing and outlier detection ([12-PCA.R](12-PCA.R))
-
-The essential output is the PCs of the PCA for each sample, which is used as input for the machine learning prediction.
-
-----------
-
-## Step 5: machine learning prediction on the first 20 PCs from the PCA analysis
-
-doing machine learning prediction using scikit-learn ([13-AncestryML.py](13-AncestryML.py)), with config files (Config01.yaml and Config02.yaml, for super population and population respectively)
-
-After evaluating multiple models, such as random forest, random forest with balanced weights, SVM, XGBoost, KNN, GNB, etc., using 10 fold cross validation
-
-we moved forward with the random forest with balanced weights, which achieved 99% and 90% accuracy for super population and population prediction.
-
-----------
-
-## Step 6: visualize ancestry prediction using donut plot
-
-visualize the prediction using donut plot ([14-DonutPlot.py](14-DonutPlot.py)), with the inner circle showing the probability of each population and the outer circle showing the probability of each super population.
-
-![HIPP100_DonutPlot.svg](HIPP100_DonutPlot.svg)
-
-## Step 7: compare self-reported race and genetic ancestry
-
-![](HPAP_Donor_Summary_GeneticAncestry_race.png)
-
-![](HPAP_Donor_Summary_GeneticAncestry_SupPopulation.png)
-
-![](HPAP_Donor_Summary_Sankey.png)
-
-
-----------
+**License:** [MIT License](LICENSE)
