@@ -60,6 +60,10 @@ gap eval-model --config_file=$config --train_file=$train --test_file=$test --met
 gap predict --input=$pred --output=$predicted --label_file=$label --metrics_file=$metrics --model_file=$model
 ```
 
+## Citation
+
+If you use GAP in your research, please cite the DOI: [10.5281/zenodo.18157870](https://doi.org/10.5281/zenodo.18157870)
+
 ## Author and License
 
 **Author:** Han Sun
