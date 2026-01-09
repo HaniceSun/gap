@@ -27,7 +27,8 @@ conda activate gap
 ```
 input_vcf='INPUT.vcf.gz'
 
-gap get-reference-data --output_dir=data
+gap get-reference-data --output_dir=data (only needed the first time)
+
 gap merge-dataset-with-reference --dataset $input_vcf
 gap feature-engineering
 
@@ -35,6 +36,7 @@ gap add-labels
 gap split-train-test --input data/features_labeled_Population.txt --test_size 0.2
 gap split-train-test --input data/features_labeled_Superpopulation.txt --test_size 0.2
 
+# for the prediction of Superpopulation with 5 categories (AFR, AMR, EAS, EUR, SAS)
 config=config.yaml
 train=data/features_labeled_Superpopulation_train.txt
 test=data/features_labeled_Superpopulation_test.txt
@@ -47,6 +49,7 @@ gap train-model --config_file=$config --train_file=$train --test_file=$test --me
 gap eval-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics --model_file=$model
 gap predict --input=$pred --output=$predicted --label_file=$label --metrics_file=$metrics --model_file=$model
 
+# for the prediction of Population with 26 categories (e.g. GBR, CHB, MXL, YRI, etc.)
 config=config.yaml
 train=data/features_labeled_Population_train.txt
 test=data/features_labeled_Population_test.txt
