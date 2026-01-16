@@ -23,14 +23,14 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import VotingClassifier
-from sklearn.svm import SVC
-from sklearn.svm import SVR
 from xgboost import XGBClassifier
 from xgboost import XGBRegressor
 from lightgbm import LGBMClassifier
 from lightgbm import LGBMRegressor
 from catboost import CatBoostClassifier
 from catboost import CatBoostRegressor
+from sklearn.svm import SVC
+from sklearn.svm import SVR
 from sklearn.neural_network import MLPClassifier
 from sklearn.neural_network import MLPRegressor
 from sklearn.calibration import CalibratedClassifierCV
