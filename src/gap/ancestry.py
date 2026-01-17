@@ -310,13 +310,10 @@ class Ancestry:
         plt.tight_layout()
         out_file = in_file.split('.txt')[0] + '_vs_' + in_file2.split('.txt')[0] + '_sankey.png'
         plt.savefig(out_file)
+        print(f'{df_merged.shape[0]} samples shared')
         print(f'sankey plot saved to {out_file}')
 
 
 if __name__ == '__main__':
     an = Ancestry()
-    #an.get_ancestry_reference()
-    #an.merge_dataset_with_reference('data/Omni.vcf.gz', 'data/1000genomes_unrelated.vcf.gz', 'data/merged')
-    #an.feature_engineering('data/merged', pruning=True, pca=True)
-    #an.add_labels()
-    #an.split_train_test()
+    an._benchmark_against_self_reported_race('GenetcicAncestry.txt', 'IIDP_Donor_Race.txt')
