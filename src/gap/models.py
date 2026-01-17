@@ -37,7 +37,7 @@ from sklearn.calibration import CalibratedClassifierCV
 
 
 class GapLearn():
-    def __init__(self, task_type='classification', multi_class=True, score_method='roc_auc'):
+    def __init__(self, task_type='classification', multi_class=True, score_method='roc_auc', feature_standardize=False, feature_select=False, random_state=42):
         self.time_zone = ZoneInfo("America/Los_Angeles")
         self.time_format = '%Y-%m-%d %H:%M:%S'
         self.config_dir = f'{resources.files("gap").parent}/config'
@@ -45,11 +45,13 @@ class GapLearn():
         self.task_type = task_type
         self.multi_class = multi_class
         self.score_method = score_method
+        self.feature_standardize = feature_standardize
+        self.feature_select = feature_select
+        self.random_state = random_state
 
     def train_cross_val(self, config_file='config.yaml', train_file='features_labeled_train.txt',
                         metrics_file='metrics.txt', n_features='max', target_col='class',
-                        exclude_columns=['SampleID', 'class_name'], cv_n_splits=10,
-                        feature_standardize=False, feature_select=False, random_state=42):
+                        exclude_columns=['SampleID', 'class_name'], cv_n_splits=10):
 
         self.config = self.load_yaml(config_file)
         self.df_train = pd.read_table(train_file, header=0, sep='\t')
@@ -57,7 +59,7 @@ class GapLearn():
         self.feature_cols = [True if x not in [self.target_col] + exclude_columns else False for x in self.df_train.columns]
         self.log(f'train shape: {self.df_train.shape}')
 
-        self.cvs = KFold(n_splits=cv_n_splits, shuffle=True, random_state=random_state)
+        self.cvs = KFold(n_splits=cv_n_splits, shuffle=True, random_state=self.random_state)
 
         try:
             n_features = [x.strip() for x in n_features.split(',')]
@@ -72,13 +74,13 @@ class GapLearn():
             y_train = self.df_train.loc[train_idx, self.target_col]
             X_val = self.df_train.loc[val_idx, self.feature_cols]
             y_val = self.df_train.loc[val_idx, self.target_col]
-            if feature_select:
+            if self.feature_select:
                 features = self.feature_selection(X_train, y_train)
             else:
                 features = list(X_train.columns)
             X_train_selected = X_train.loc[:, features]
             X_val_selected = X_val.loc[:, features]
-            if feature_standardize:
+            if self.feature_standardize:
                 X_train_selected, X_val_selected, scaler = self.feature_standardization(X_train_selected, X_val_selected)
             for nf in self.n_features:
                 if nf == 'max':
@@ -92,7 +94,7 @@ class GapLearn():
                     combinations = list(product(*param_grid.values()))
                     for combo in combinations:
                         params = dict(zip(keys, combo))
-                        model = self.fit_model(model_name, model_class, params, X_train, y_train, X_val, y_val, random_state)
+                        model = self.fit_model(model_name, model_class, params, X_train, y_train, X_val, y_val, self.random_state)
                         y_pred = model.predict(X_val)
                         if self.task_type == 'classification':
                             y_pred_prob = model.predict_proba(X_val)
@@ -131,36 +133,36 @@ class GapLearn():
                 X2 = pd.DataFrame(scaler.transform(X2), columns=X2.columns)
         return X, X2, scaler
 
-    def fit_model(self, model_name, model_class, params, X_train, y_train, X_val=None, y_val=None, random_state=42):
+    def fit_model(self, model_name, model_class, params, X_train, y_train, X_val=None, y_val=None):
         if model_name == 'mlp':
-            model = model_class(**params, random_state=random_state, verbose=0)
+            model = model_class(**params, random_state=self.random_state, verbose=0)
             model.fit(X_train, y_train)
         elif model_name == 'catboost':
-            model = model_class(**params, random_state=random_state, verbose=0)
+            model = model_class(**params, random_state=self.random_state, verbose=0)
             if y_val is not None:
                 model.fit(X_train, y_train, eval_set=(X_val, y_val), logging_level='Silent')
             else:
                 model.fit(X_train, y_train, logging_level='Silent')
         elif model_name == 'lgb':
-            model = model_class(**params, random_state=random_state, verbose=-1)
+            model = model_class(**params, random_state=self.random_state, verbose=-1)
             if y_val is not None:
                 model.fit(X_train, y_train, eval_set=(X_val, y_val))
             else:
                 model.fit(X_train, y_train)
         elif model_name == 'xgb':
-            model = model_class(**params, random_state=random_state)
+            model = model_class(**params, random_state=self.random_state)
             if y_val is not None:
                 model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
             else:
                 model.fit(X_train, y_train, verbose=False)
         elif model_name == 'random_forest':
-            model = model_class(**params, random_state=random_state, verbose=0)
+            model = model_class(**params, random_state=self.random_state, verbose=0)
             model.fit(X_train, y_train)
         elif model_name == 'svm':
-            model = model_class(**params, probability=True, random_state=random_state, verbose=0)
+            model = model_class(**params, probability=True, random_state=self.random_state, verbose=0)
             model.fit(X_train, y_train)
         else:
-            model = model_class(**params, random_state=random_state)
+            model = model_class(**params, random_state=self.random_state)
             model.fit(X_train, y_train)
         return model
 
@@ -205,8 +207,8 @@ class GapLearn():
 
     def final_fit_eval_on_full_train_then_eval_on_test(self, config_file='config.yaml', metrics_file='metrics_sorted_best.txt', train_file='features_labeled_train.txt', 
                                                        test_file='features_labeled_test.txt', exclude_columns=['SampleID', 'class_name'], target_col='class', 
-                                                       feature_standardize=False, feature_select=False, ensemble=False, ensemble_voting='soft', 
-                                                       ensemble_calibration=False, calibration_method='sigmoid', calibration_cv=5, model_file='model.pkl', random_state=42):
+                                                       ensemble=False, ensemble_voting='soft', ensemble_calibration=False, calibration_method='sigmoid',
+                                                       calibration_cv=5, model_file='model.pkl'):
         self.config = self.load_yaml(config_file)
         df = pd.read_table(metrics_file, header=0, sep='\t')
         self.df_train = pd.read_table(train_file, header=0, sep='\t')
@@ -219,7 +221,7 @@ class GapLearn():
         y_train = self.df_train.loc[:, self.target_col]
         X_test_full = self.df_test.loc[:, self.feature_cols]
         y_test = self.df_test.loc[:, self.target_col]
-        if feature_select:
+        if self.feature_select:
             features_full = self.feature_selection(X_train_full, y_train)
         else:
             features_full = list(X_train_full.columns)
@@ -237,7 +239,7 @@ class GapLearn():
             X_train = X_train_full.loc[:, features]
             X_test = X_test_full.loc[:, features]
 
-            if feature_standardize:
+            if self.feature_standardize:
                 X_train, X_test, scaler = self.feature_standardization(X_train, X_test)
             else:
                 scaler = None
@@ -246,7 +248,7 @@ class GapLearn():
             model_name = df['model'].iloc[n]
             model_class = eval(self.config['models'][model_name]['class'])
 
-            model = self.fit_model(model_name, model_class, params, X_train, y_train, random_state=random_state)
+            model = self.fit_model(model_name, model_class, params, X_train, y_train, random_state=self.random_state)
             models[model_name] = model
             self.eval_model(model, X_train, y_train, model_name, n_features, 'train', out_file)
             self.eval_model(model, X_test, y_test, model_name, n_features, 'test', out_file)
@@ -280,7 +282,7 @@ class GapLearn():
 
         joblib.dump(to_save, model_file)
 
-    def predict(self, in_file='to_predict_features.txt', out_file='predicted.txt', label_file='features_labels.txt', model_name='random_forrest', model_file='model.pkl', feature_standardize=False, include_columns=['SampleID']):
+    def predict(self, in_file='to_predict_features.txt', out_file='predicted.txt', label_file='features_labels.txt', model_name='random_forrest', model_file='model.pkl', include_columns=['SampleID']):
         try:
             df_labels = pd.read_table(label_file, header=0, sep='\t')
             num2name = dict(zip(df_labels['class'], df_labels['class_name']))
@@ -296,7 +298,7 @@ class GapLearn():
         df = pd.read_table(in_file, header=0, sep='\t')
         X = df.loc[:, features]
 
-        if feature_standardize:
+        if self.feature_standardize:
             X, _, _ = self.feature_standardization(X, scaler=scaler)
 
         if list(X.columns) != list(features):
@@ -353,8 +355,8 @@ class GapLearn():
         X.drop(columns=to_drop, inplace=True)
         return X
 
-    def _sort_by_mutual_info_score(self, X, y, discrete_features='auto', random_state=42):
-        mi = mutual_info_classif(X, y, discrete_features=discrete_features, random_state=random_state)
+    def _sort_by_mutual_info_score(self, X, y, discrete_features='auto'):
+        mi = mutual_info_classif(X, y, discrete_features=discrete_features, random_state=self.random_state)
         df = pd.DataFrame()
         df['features'] = X.columns
         df['mi_score'] = mi
