@@ -118,7 +118,7 @@ class Ancestry:
                 infile = out_file_bed
 
             if pca:
-                cmd = f'plink --bfile {in_file} --pca {pca_params[0]} --out {out_file_pca} --threads {threads}'
+                cmd = f'plink2 --bfile {in_file} --pca {pca_params[0]} --out {out_file_pca} --threads {threads}'
                 subprocess.run(cmd, shell=True, check=True)
                 print(f"PCA results saved to {out_file_pca}.eigenvec")
 
