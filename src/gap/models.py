@@ -94,7 +94,7 @@ class GapLearn():
                     combinations = list(product(*param_grid.values()))
                     for combo in combinations:
                         params = dict(zip(keys, combo))
-                        model = self.fit_model(model_name, model_class, params, X_train, y_train, X_val, y_val, self.random_state)
+                        model = self.fit_model(model_name, model_class, params, X_train, y_train, X_val, y_val)
                         y_pred = model.predict(X_val)
                         if self.task_type == 'classification':
                             y_pred_prob = model.predict_proba(X_val)
@@ -248,7 +248,7 @@ class GapLearn():
             model_name = df['model'].iloc[n]
             model_class = eval(self.config['models'][model_name]['class'])
 
-            model = self.fit_model(model_name, model_class, params, X_train, y_train, random_state=self.random_state)
+            model = self.fit_model(model_name, model_class, params, X_train, y_train)
             models[model_name] = model
             self.eval_model(model, X_train, y_train, model_name, n_features, 'train', out_file)
             self.eval_model(model, X_test, y_test, model_name, n_features, 'test', out_file)
