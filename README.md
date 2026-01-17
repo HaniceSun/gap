@@ -48,6 +48,12 @@ gap summarize --conditional true
 
 ```
 
+# Benchmark Results
+
+- Superpopulation Prediction vs Self-reported Race in the IIDP cohorts
+
+![](src/data/GenetcicAncestry_vs_race_sankey.png)
+
 ## Citation
 
 If you use GAP in your research, please cite the DOI: [10.5281/zenodo.18157870](https://doi.org/10.5281/zenodo.18157870)

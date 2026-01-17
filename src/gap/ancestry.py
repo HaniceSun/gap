@@ -3,6 +3,7 @@ import pandas as pd
 import subprocess
 from .models import GapLearn
 from sklearn.model_selection import train_test_split
+from .utils import *
 
 class Ancestry:
     def __init__(self):
@@ -300,6 +301,17 @@ class Ancestry:
 
             df.to_csv(out_file_cond, header=True, index=False, sep='\t')
             print(f"Genetic ancestry (conditional) table saved to {out_file_cond}")
+
+    def _benchmark_against_self_reported_race(self, in_file, in_file2, cols=['SampleID', 'ID', 'Superpopulation', 'Race']):
+        df = pd.read_table(in_file, header=0, sep='\t')
+        df2 = pd.read_table(in_file2, header=0, sep='\t')
+        df_merged = pd.merge(df, df2, left_on=cols[0], right_on=cols[1])
+        sankey(df_merged[cols[2]], df_merged[cols[3]], aspect=30, fontsize=10)
+        plt.tight_layout()
+        out_file = in_file.split('.txt')[0] + '_vs_race_sankey.png'
+        plt.savefig(out_file)
+        print(f'sankey plot saved to {out_file}')
+
 
 if __name__ == '__main__':
     an = Ancestry()
