@@ -150,34 +150,75 @@ class Ancestry:
         dfsp_unlabeled = dfsp[dfsp['class_name'] == '.'].copy()
         dfsp_unlabeled.drop(columns=['class_name'], inplace=True)
 
-        out_file_population = in_file.replace('.txt', '_labels_Population.txt')
-        out_file_superpopulation = in_file.replace('.txt', '_labels_Superpopulation.txt')
+        labels_file_p = f'{os.path.dirname(in_file)}/labels_Population.txt'
+        labels_file_sp = f'{os.path.dirname(in_file)}/labels_Superpopulation.txt'
         p_labels = sorted(dfp_labeled['class_name'].unique())
         sp_labels = sorted(dfsp_labeled['class_name'].unique())
         df_p_labels = pd.DataFrame({'class_name': p_labels, 'class': range(len(p_labels))})
         df_sp_labels = pd.DataFrame({'class_name': sp_labels, 'class': range(len(sp_labels))})
-        df_p_labels.to_csv(out_file_population, header=True, index=False, sep='\t')
-        df_sp_labels.to_csv(out_file_superpopulation, header=True, index=False, sep='\t')
-        print(f"Population labels saved to {out_file_population}")
-        print(f"Superpopulation labels saved to {out_file_superpopulation}")
+        df_p_labels.to_csv(labels_file_p, header=True, index=False, sep='\t')
+        df_sp_labels.to_csv(labels_file_sp, header=True, index=False, sep='\t')
+        print(f"Superpopulation labels saved to {labels_file_sp}")
+        print(f"Population labels saved to {labels_file_p}")
 
         dfp_labeled['class'] = [p_labels.index(x) for x in dfp_labeled['class_name']]
         dfsp_labeled['class'] = [sp_labels.index(x) for x in dfsp_labeled['class_name']]
 
-        dfp_labeled.to_csv(in_file.replace('.txt', '_labeled_Population.txt'), header=True, index=False, sep='\t')
-        dfsp_labeled.to_csv(in_file.replace('.txt', '_labeled_Superpopulation.txt'), header=True, index=False, sep='\t')
-        dfsp_unlabeled.to_csv(in_file.replace('.txt', '_ToPred.txt'), header=True, index=False, sep='\t')
-        print(f"Labeled Population data saved to {in_file.replace('.txt', '_labeled_Population.txt')}")
-        print(f"Labeled Superpopulation data saved to {in_file.replace('.txt', '_labeled_Superpopulation.txt')}")
-        print(f"Unlabeled data saved to {in_file.replace('.txt', '_ToPred.txt')}")
+        labeled_file_p = in_file.replace('.txt', '_labeled_Population.txt')
+        labeled_file_sp = in_file.replace('.txt', '_labeled_Superpopulation.txt')
+        to_predict_file = f'{os.path.dirname(in_file)}/ToPredict.txt'
+        dfp_labeled.to_csv(labeled_file_p, header=True, index=False, sep='\t')
+        dfsp_labeled.to_csv(labeled_file_sp, header=True, index=False, sep='\t')
+        dfsp_unlabeled.to_csv(to_predict_file, header=True, index=False, sep='\t')
+        print(f"Labeled Superpopulation data saved to {labeled_file_sp}")
+        print(f"Labeled Population data saved to {labeled_file_p}")
+        print(f"To predict data saved to {to_predict_file}")
 
-    def split_train_test(self, in_file, test_size=0.2, random_state=42):
-        df = pd.read_table(in_file, header=0, sep='\t')
-        df_train, df_test = train_test_split(df, test_size=test_size, random_state=random_state, stratify=df['class'])
-        df_train.to_csv(in_file.replace('.txt', '_train.txt'), header=True, index=False, sep='\t')
-        df_test.to_csv(in_file.replace('.txt', '_test.txt'), header=True, index=False, sep='\t')
-        print(f"Train data saved to {in_file.replace('.txt', '_train.txt')}")
-        print(f"Test data saved to {in_file.replace('.txt', '_test.txt')}")
+    def split_train_test(self, in_file, test_size=0.2, conditional=True, random_state=42):
+        for pop in ['Superpopulation', 'Population']:
+            in_f = in_file.replace(f'.txt', f'_labeled_{pop}.txt')
+            train_f = in_f.replace('.txt', '_train.txt')
+            test_f = in_f.replace('.txt', '_test.txt')
+            df = pd.read_table(in_f, header=0, sep='\t')
+            df_train, df_test = train_test_split(df, test_size=test_size, random_state=random_state, stratify=df['class'])
+            df_train.to_csv(train_f, header=True, index=False, sep='\t')
+            df_test.to_csv(test_f, header=True, index=False, sep='\t')
+            print(f"{pop} train data saved to {train_f}")
+            print(f"{pop} test data saved to {test_f}")
+        if conditional:
+            D = {}
+            labeled_file_sp = in_file.replace('.txt', '_labeled_Superpopulation.txt')
+            labeled_file_p = in_file.replace('.txt', '_labeled_Population.txt')
+
+            df_sp = pd.read_table(labeled_file_sp, header=0, sep='\t')
+            df_p = pd.read_table(labeled_file_p, header=0, sep='\t')
+            for n in range(df_sp.shape[0]):
+                k = df_sp['SampleID'].iloc[n]
+                class_name = df_sp['class_name'].iloc[n]
+                D.setdefault(class_name, [])
+                D[class_name].append(k)
+
+            for pop in sorted(D.keys()):
+                sample_ids = D[pop]
+                df_sub = df_p[df_p['SampleID'].isin(sample_ids)].copy()
+
+                p_labels = sorted(df_sub['class_name'].unique())
+                df_sub['class'] = [p_labels.index(x) for x in df_sub['class_name']]
+                df_p_labels = pd.DataFrame({'class_name': p_labels, 'class': range(len(p_labels))})
+                out_file_lables = f'{os.path.dirname(in_file)}/labels_Population_within_{pop}.txt'
+                df_p_labels.to_csv(out_file_lables, header=True, index=False, sep='\t')
+                print(f"Population labels within {pop} saved to {out_file_lables}")
+
+                sub_f = in_file.replace('.txt', f'_labeled_Population_within_{pop}.txt')
+                train_f = in_file.replace('.txt', f'_labeled_Population_within_{pop}_train.txt')
+                test_f = in_file.replace('.txt', f'_labeled_Population_within_{pop}_test.txt')
+                df_train, df_test = train_test_split(df_sub, test_size=test_size, random_state=random_state, stratify=df_sub['class'])
+                df_sub.to_csv(sub_f, header=True, index=False, sep='\t')
+                df_train.to_csv(train_f, header=True, index=False, sep='\t')
+                df_test.to_csv(test_f, header=True, index=False, sep='\t')
+                print(f"Population data within {pop} saved to {sub_f}")
+                print(f"Population train data within {pop} saved to {train_f}")
+                print(f"Population test data within {pop} saved to {test_f}")
 
     def _concat_vcfs(self, vcf_list, out_vcf):
         try:
@@ -208,6 +249,57 @@ class Ancestry:
             print(f"Extracted samples VCF saved to {out_file}")
         except Exception as e:
             print(f"Error extracting samples: {e}")
+
+    def get_summary_table(self, in_file_sp='data/Predicted_Superpopulation.txt', in_file_p='data/Predicted_Population.txt', out_file='GeneticAncestry.txt', conditional=True):
+        df_sp = pd.read_table(in_file_sp, header=0, sep='\t')
+        df_p = pd.read_table(in_file_p, header=0, sep='\t')
+        df_merged = pd.merge(df_sp, df_p, on='SampleID', suffixes=('_Superpopulation', '_Population'))
+        df = pd.DataFrame()
+        df['SampleID'] = df_merged['SampleID']
+        df['Superpopulation'] = df_merged['class_Superpopulation']
+        df['Population'] = df_merged['class_Population']
+        for col in df_merged.columns:
+            if col not in ['SampleID', 'class_Superpopulation', 'class_Population']:
+                df[col] = df_merged[col] 
+        df.to_csv(out_file, header=True, index=False, sep='\t')
+        print(f"Genetic ancestry table saved to {out_file}")
+        if conditional:
+            out_file_cond = out_file.replace('.txt', '_conditional.txt')
+            df_sp = pd.read_table(in_file_sp, header=0, sep='\t')
+            labels_sp = pd.read_table(in_file_sp.replace('Predicted', 'labels'), header=0, sep='\t')['class_name'].tolist()
+            L = [df_sp]
+            for pop in labels_sp:
+                in_file = in_file_p.replace('.txt', f'_within_{pop}.txt')
+                df_p = pd.read_table(in_file, header=0, sep='\t')
+                df_p.columns = [f'{col}_within_{pop}' for col in df_p.columns]
+                L.append(df_p)
+            df_merged = pd.concat(L, axis=1)
+
+            df = pd.DataFrame()
+            df['SampleID'] = df_merged['SampleID']
+            df['Superpopulation'] = df_merged['class']
+
+            L = []
+            for n in range(df_merged.shape[0]):
+                sp = df_merged['class'].iloc[n]
+                p = df_merged[f'class_within_{sp}'].iloc[n] 
+                L.append(p)
+            df['Population'] = L
+
+            for pop in labels_sp:
+                df[pop] = df_merged[pop]
+
+            pops = {}
+            for p in df_merged.columns:
+                if p.find('_within_') != -1:
+                    pop = p.split('_within_')[0]
+                    if pop not in ['SampleID', 'class']:
+                        pops[pop] = df_merged[p] 
+            for pop in sorted(pops):
+                df[pop] = pops[pop]
+
+            df.to_csv(out_file_cond, header=True, index=False, sep='\t')
+            print(f"Genetic ancestry (conditional) table saved to {out_file_cond}")
 
 if __name__ == '__main__':
     an = Ancestry()

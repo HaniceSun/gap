@@ -2,6 +2,7 @@ import argparse
 from importlib import resources
 from .ancestry import Ancestry
 from .models import GapLearn
+import os
 import pandas as pd
 
 def get_parser():
@@ -33,31 +34,40 @@ def get_parser():
     p4.add_argument('--label_file', type=str, default='data/1000genomes_unrelated_sampleInfo.txt', help='the file containing ancestry labels for the reference samples')
 
     p5 = subparsers.add_parser('split-train-test', help='split the dataset into train and test sets')
-    p5.add_argument('--input', type=str, default='data/features_labeled_Superpopulation.txt', help='the input file with features and labels')
+    p5.add_argument('--input', type=str, default='data/features.txt', help='the input file with features and labels')
     p5.add_argument('--test_size', type=float, default=0.2, help='proportion of the dataset to include in the test split')
 
     p6 = subparsers.add_parser('train-model', help='train models with different parameters')
     p6.add_argument('--config_file', type=str, default='config.yaml', help='the configuration file specifying models and parameters')
-    p6.add_argument('--train_file', type=str, default='data/features_labeled_Superpopulation_train.txt', help='the training set file with features and labels')
-    p6.add_argument('--test_file', type=str, default='data/features_labeled_Superpopulation_test.txt', help='the test set file with features and labels')
-    p6.add_argument('--metrics_file', type=str, default='data/metrics_Superpopulatoiin.txt', help='the output file to save model performance metrics')
+    p6.add_argument('--input', type=str, default='data/features.txt', help='the input feature matrix file')
+    p6.add_argument('--task', type=str, default='Superpopulation', help='the prediction task, e.g., Superpopulation or Population')
+    p6.add_argument('--conditional', type=str, default='True', help='if training conditional models when predict Population')
+    p6.add_argument('--metrics_file', type=str, default='data/metrics.txt', help='the output file to save model performance metrics')
     p6.add_argument('--n_features', type=str, default='10,20,30', help='the number of features to use for training')
 
     p7 = subparsers.add_parser('eval-model', help='evaluate models and select the best one')
     p7.add_argument('--config_file', type=str, default='config.yaml', help='the configuration file specifying models and parameters')
-    p7.add_argument('--train_file', type=str, default='data/features_labeled_Superpopulation_train.txt', help='the training set file with features and labels')
-    p7.add_argument('--test_file', type=str, default='data/features_labeled_Superpopulation_test.txt', help='the test set file with features and labels')
-    p7.add_argument('--metrics_file', type=str, default='data/metrics_Superpopulation.txt', help='the model performance metrics from the training step')
-    p7.add_argument('--model_file', type=str, default='model_Superpopulation.pkl', help='the output file containing the trained model')
+    p7.add_argument('--input', type=str, default='data/features.txt', help='the input feature matrix file')
+    p7.add_argument('--task', type=str, default='Superpopulation', help='the prediction task, e.g., Superpopulation or Population')
+    p7.add_argument('--conditional', type=str, default='True', help='if training conditional models when predict Population')
+    p7.add_argument('--metrics_file', type=str, default='data/metrics.txt', help='the model performance metrics from the training step')
+    p7.add_argument('--model_file', type=str, default='data/model.pkl', help='the output file containing the trained model')
 
     p8 = subparsers.add_parser('predict', help='predict ancestry using the trained model')
-    p8.add_argument('--input', type=str, default='ToPred.txt', help='the input feature matrix file for prediction')
-    p8.add_argument('--output', type=str, default='predicted_Superpopulation.txt', help='the output file to save the predictions')
-    p8.add_argument('--label_file', type=str, default='data/labels_Superpopulation.txt', help='the label file to decode labels')
-    p8.add_argument('--metrics_file', type=str, default='data/metrics_Superpopulation.txt', help='the model performance metrics from the training step')
-    p8.add_argument('--model_file', type=str, default='model_Superpopulation.pkl', help='the file containing the trained model')
+    p8.add_argument('--input', type=str, default='data/ToPredict.txt', help='the input feature matrix file for prediction')
+    p8.add_argument('--output', type=str, default='data/Predicted.txt', help='the output file to save the predictions')
+    p8.add_argument('--task', type=str, default='Superpopulation', help='the prediction task, e.g., Superpopulation or Population')
+    p8.add_argument('--conditional', type=str, default='True', help='if using the conditional models for Population')
+    p8.add_argument('--metrics_file', type=str, default='data/metrics.txt', help='the model performance metrics from the training step')
+    p8.add_argument('--model_file', type=str, default='data/model.pkl', help='the saved model file')
+    p8.add_argument('--label_file', type=str, default='data/labels.txt', help='the model performance metrics from the training step')
     p8.add_argument('--model_name', type=str, default=None, help='the model name to use for prediction, using the best model if not specified')
 
+    p9 = subparsers.add_parser('summarize', help='get a summary table with both Superpopulation and Population predictions')
+    p9.add_argument('--input_sp', type=str, default='data/Predicted_Superpopulation.txt', help='the predicted results for Superpopulation')
+    p9.add_argument('--input_p', type=str, default='data/Predicted_Population.txt', help='the predicted results for Population')
+    p9.add_argument('--conditional', type=str, default='True', help='if using the conditional models for Population')
+    p9.add_argument('--outfile', type=str, default='GenetcicAncestry.txt', help='the output summary file combining both predictions')
     return parser
 
 
@@ -82,24 +92,97 @@ def main():
         an.split_train_test(in_file=args.input, test_size=args.test_size)
     elif args.command == 'train-model':
         gl = GapLearn()
-        gl.train_cross_val(config_file=args.config_file, train_file=args.train_file, test_file=args.test_file,
-                           metrics_file=args.metrics_file, n_features=args.n_features)
+        task = args.task
+        conditional = (args.conditional.lower() == 'true')
+        train_file = args.input.replace('.txt', f'_labeled_{task}_train.txt')
+        metrics_file = args.metrics_file.replace('.txt', f'_{task}.txt')
+        gl.train_cross_val(config_file=args.config_file, train_file=train_file, metrics_file=metrics_file, n_features=args.n_features)
+
+        if task == 'Population' and conditional:
+            labels_file = f'{os.path.dirname(args.input)}/labels_Superpopulation.txt'
+            pops = pd.read_table(labels_file, header=0, sep='\t')['class_name'].unique().tolist()
+            for pop in pops:
+                try:
+                    print(f'Training conditional model for Population within Superpopulation: {pop}')
+                    train_file = args.input.replace('.txt', f'_labeled_Population_within_{pop}_train.txt')
+                    metrics_file = args.metrics_file.replace('.txt', f'_Population_within_{pop}.txt')
+                    gl.train_cross_val(config_file=args.config_file, train_file=train_file, metrics_file=metrics_file, n_features=args.n_features)
+                except Exception as e:  
+                    print(f'Error training model for Population within {pop}: {e}')
+
     elif args.command == 'eval-model':
         gl = GapLearn()
-        gl.get_best_model_and_params(metrics_file=args.metrics_file)
-        gl.final_fit_eval_on_full_train_then_eval_on_test(config_file=args.config_file, in_file=args.metrics_file.replace('.txt', '_sorted_best.txt'),
-                                                          train_file=args.train_file, test_file=args.test_file, model_file=args.model_file)
+        config_file = args.config_file
+        task = args.task
+        conditional = (args.conditional.lower() == 'true')
+        train_file = args.input.replace('.txt', f'_labeled_{task}_train.txt')
+        test_file = args.input.replace('.txt', f'_labeled_{task}_test.txt')
+        metrics_file = args.metrics_file.replace('.txt', f'_{task}.txt')
+        metrics_file_sorted = metrics_file.replace('.txt', '_sorted_best.txt')
+        model_file = args.model_file.replace('.pkl', f'_{task}.pkl')
+
+        gl.get_best_model_and_params(metrics_file=metrics_file)
+        gl.final_fit_eval_on_full_train_then_eval_on_test(config_file=config_file, metrics_file=metrics_file_sorted,
+                                                          train_file=train_file, test_file=test_file, model_file=model_file)
+
+        if task == 'Population' and conditional:
+            labels_file = f'{os.path.dirname(args.input)}/labels_Superpopulation.txt'
+            pops = pd.read_table(labels_file, header=0, sep='\t')['class_name'].unique().tolist()
+            for pop in pops:
+                try:
+                    print(f'Evaluating conditional model for Population within Superpopulation: {pop}')
+                    train_file = args.input.replace('.txt', f'_labeled_Population_within_{pop}_train.txt')
+                    test_file = args.input.replace('.txt', f'_labeled_Population_within_{pop}_test.txt')
+                    metrics_file = args.metrics_file.replace('.txt', f'_Population_within_{pop}.txt')
+                    metrics_file_sorted = metrics_file.replace('.txt', '_sorted_best.txt')
+                    model_file = args.model_file.replace('.pkl', f'_Population_within_{pop}.pkl')
+                    gl.get_best_model_and_params(metrics_file=metrics_file)
+                    gl.final_fit_eval_on_full_train_then_eval_on_test(config_file=config_file, metrics_file=metrics_file_sorted, 
+                                                                      train_file=train_file, test_file=test_file, model_file=model_file)
+                except Exception as e:  
+                    print(f'Error evaluating model for Population within {pop}: {e}')
+
     elif args.command == 'predict':
-        gl = GapLearn()
+        in_file = args.input 
+        task = args.task
+        conditional = (args.conditional.lower() == 'true')
+        metrics_file = args.metrics_file.replace('.txt', f'_{task}.txt')
+        metrics_file_sorted = metrics_file.replace('.txt', '_sorted_best.txt')
+        out_file = args.output.replace('.txt', f'_{task}.txt')
+        label_file = args.label_file.replace('.txt', f'_{task}.txt')
         model_name = args.model_name
+        model_file = args.model_file.replace('.pkl', f'_{task}.pkl')
         if not model_name:
             try:
-                metrics_file = args.metrics_file.replace('.txt', '_sorted_best.txt')
-                model_name = pd.read_table(metrics_file, header=0, sep='\t')['model'].iloc[0]
+                model_name = pd.read_table(metrics_file_sorted, header=0, sep='\t')['model'].iloc[0]
             except Exception as e:
                 print(f"Cannot get the best model from metrics file {e}")
         print('Using model:', model_name)
-        gl.predict(in_file=args.input, out_file=args.output, label_file=args.label_file, model_name=model_name, model_file=args.model_file)
+
+        gl = GapLearn()
+        gl.predict(in_file=in_file, out_file=out_file, label_file=label_file, model_name=model_name, model_file=model_file)
+
+        if task == 'Population' and conditional:
+            f = args.label_file.replace('.txt', f'_Superpopulation.txt')
+            pops = pd.read_table(f, header=0, sep='\t')['class_name'].unique().tolist()
+            for pop in pops:
+                try:
+                    print(f'Predicting Population within Superpopulation: {pop}')
+                    out_file = args.output.replace('.txt', f'_Population_within_{pop}.txt')
+                    label_file = args.label_file.replace('.txt', f'_Population_within_{pop}.txt')
+                    metrics_file = args.metrics_file.replace('.txt', f'_Population_within_{pop}.txt')
+                    metrics_file_sorted = metrics_file.replace('.txt', '_sorted_best.txt')
+                    model_file = args.model_file.replace('.pkl', f'_Population_within_{pop}.pkl')
+                    model_name = pd.read_table(metrics_file_sorted, header=0, sep='\t')['model'].iloc[0]
+                    print('Using model:', model_name)
+                    gl.predict(in_file=in_file, out_file=out_file, label_file=label_file, model_name=model_name, model_file=model_file)
+                except Exception as e:
+                    print(f'Error predicting Population within {pop}: {e}')
+    elif args.command == 'summarize':
+        conditional = (args.conditional.lower() == 'true')
+        out_file = args.outfile
+        an.get_summary_table(in_file_sp=args.input_sp, in_file_p=args.input_p, out_file=out_file, conditional=conditional)
+
 
 if __name__ == '__main__':
     main()

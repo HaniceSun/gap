@@ -33,34 +33,19 @@ gap merge-dataset-with-reference --dataset $input_vcf
 gap feature-engineering
 
 gap add-labels
-gap split-train-test --input data/features_labeled_Population.txt --test_size 0.2
-gap split-train-test --input data/features_labeled_Superpopulation.txt --test_size 0.2
+gap split-train-test --test_size 0.2
 
-# for the prediction of Superpopulation with 5 categories (AFR, AMR, EAS, EUR, SAS)
-config=config.yaml
-train=data/features_labeled_Superpopulation_train.txt
-test=data/features_labeled_Superpopulation_test.txt
-label=data/features_labels_Superpopulation.txt
-pred=data/features_ToPred.txt
-metrics=data/metrics_Superpopulation.txt
-model=model_Superpopulation.pkl
-predicted=Predicted_Superpopulation.txt
-gap train-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics
-gap eval-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics --model_file=$model
-gap predict --input=$pred --output=$predicted --label_file=$label --metrics_file=$metrics --model_file=$model
+gap train-model --task Superpopulation
+gap train-model --task Population --conditional true
 
-# for the prediction of Population with 26 categories (e.g. GBR, CHB, MXL, YRI, etc.)
-config=config.yaml
-train=data/features_labeled_Population_train.txt
-test=data/features_labeled_Population_test.txt
-label=data/features_labels_Population.txt
-pred=data/features_ToPred.txt
-metrics=data/metrics_Population.txt
-model=model_Population.pkl
-predicted=Predicted_Population.txt
-gap train-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics
-gap eval-model --config_file=$config --train_file=$train --test_file=$test --metrics_file=$metrics --model_file=$model
-gap predict --input=$pred --output=$predicted --label_file=$label --metrics_file=$metrics --model_file=$model
+gap eval-model --task Superpopulation
+gap eval-model --task Population --conditional true
+
+gap predict --task Superpopulation
+gap predict --task Population --conditional true
+
+gap summarize --conditional true
+
 ```
 
 ## Citation

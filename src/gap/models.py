@@ -46,17 +46,16 @@ class GapLearn():
         self.multi_class = multi_class
         self.score_method = score_method
 
-    def train_cross_val(self, config_file='config.yaml', train_file='features_labeled_train.txt', test_file='features_labeled_test.txt',
+    def train_cross_val(self, config_file='config.yaml', train_file='features_labeled_train.txt',
                         metrics_file='metrics.txt', n_features='max', target_col='class',
                         exclude_columns=['SampleID', 'class_name'], cv_n_splits=10,
                         feature_standardize=False, feature_select=False, random_state=42):
 
         self.config = self.load_yaml(config_file)
         self.df_train = pd.read_table(train_file, header=0, sep='\t')
-        self.df_test = pd.read_table(test_file, header=0, sep='\t')
         self.target_col = target_col
         self.feature_cols = [True if x not in [self.target_col] + exclude_columns else False for x in self.df_train.columns]
-        self.log(f'train shape: {self.df_train.shape}, test shape {self.df_test.shape}')
+        self.log(f'train shape: {self.df_train.shape}')
 
         self.cvs = KFold(n_splits=cv_n_splits, shuffle=True, random_state=random_state)
 
@@ -204,12 +203,12 @@ class GapLearn():
             self.log('best model params:')
             print(df3)
 
-    def final_fit_eval_on_full_train_then_eval_on_test(self, config_file='config.yaml', in_file='metrics_sorted_best.txt', train_file='features_labeled_train.txt', 
+    def final_fit_eval_on_full_train_then_eval_on_test(self, config_file='config.yaml', metrics_file='metrics_sorted_best.txt', train_file='features_labeled_train.txt', 
                                                        test_file='features_labeled_test.txt', exclude_columns=['SampleID', 'class_name'], target_col='class', 
                                                        feature_standardize=False, feature_select=False, ensemble=False, ensemble_voting='soft', 
                                                        ensemble_calibration=False, calibration_method='sigmoid', calibration_cv=5, model_file='model.pkl', random_state=42):
         self.config = self.load_yaml(config_file)
-        df = pd.read_table(in_file, header=0, sep='\t')
+        df = pd.read_table(metrics_file, header=0, sep='\t')
         self.df_train = pd.read_table(train_file, header=0, sep='\t')
         self.df_test = pd.read_table(test_file, header=0, sep='\t')
         self.target_col = target_col
@@ -226,7 +225,7 @@ class GapLearn():
             features_full = list(X_train_full.columns)
 
         models = {}
-        out_file = in_file.replace('.txt', '_eval.txt')
+        out_file = metrics_file.replace('.txt', '_eval.txt')
         self.log('final eval on full train and test:')
 
         for n in range(df.shape[0]):
@@ -281,7 +280,7 @@ class GapLearn():
 
         joblib.dump(to_save, model_file)
 
-    def predict(self, in_file='to_predict_features.txt', out_file='predicted.txt', label_file='features_labels.txt', model_name='xgb', model_file='model.pkl', include_columns=['SampleID']):
+    def predict(self, in_file='to_predict_features.txt', out_file='predicted.txt', label_file='features_labels.txt', model_name='random_forrest', model_file='model.pkl', feature_standardize=False, include_columns=['SampleID']):
         try:
             df_labels = pd.read_table(label_file, header=0, sep='\t')
             num2name = dict(zip(df_labels['class'], df_labels['class_name']))
@@ -297,8 +296,8 @@ class GapLearn():
         df = pd.read_table(in_file, header=0, sep='\t')
         X = df.loc[:, features]
 
-        X, _, _ = self.feature_standardization(X, scaler=scaler)
-
+        if feature_standardize:
+            X, _, _ = self.feature_standardization(X, scaler=scaler)
 
         if list(X.columns) != list(features):
             self.log('ERROR features are different')
