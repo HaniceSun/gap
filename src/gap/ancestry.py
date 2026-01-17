@@ -308,7 +308,7 @@ class Ancestry:
         df_merged = pd.merge(df, df2, left_on=cols[0], right_on=cols[1])
         sankey(df_merged[cols[2]], df_merged[cols[3]], aspect=30, fontsize=10)
         plt.tight_layout()
-        out_file = in_file.split('.txt')[0] + '_vs_race_sankey.png'
+        out_file = in_file.split('.txt')[0] + '_vs_' + in_file2.split('.txt')[0] + '_sankey.png'
         plt.savefig(out_file)
         print(f'sankey plot saved to {out_file}')
 
