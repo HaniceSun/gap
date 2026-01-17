@@ -106,7 +106,7 @@ class Ancestry:
         except Exception as e:
             print(f"Error getting shared variants: {e}")
 
-    def feature_engineering(self, in_file, out_file='data/features.txt', pruning=True, pruning_params=[50, 5, 0.2], pca=True, pca_params=[50], threads=1):
+    def feature_engineering(self, in_file, out_file='data/features.txt', pruning=True, pruning_params=[50, 5, 0.2], pca=True, n_pcs=50, threads=1):
         out_file_bed = f'{in_file}_pruned'
         out_file_pca = f'{in_file}_pca'
         try:
@@ -118,7 +118,7 @@ class Ancestry:
                 infile = out_file_bed
 
             if pca:
-                cmd = f'plink2 --bfile {in_file} --pca {pca_params[0]} --out {out_file_pca} --threads {threads}'
+                cmd = f'plink --bfile {in_file} --pca {n_pcs} --out {out_file_pca} --threads {threads}'
                 subprocess.run(cmd, shell=True, check=True)
                 print(f"PCA results saved to {out_file_pca}.eigenvec")
 

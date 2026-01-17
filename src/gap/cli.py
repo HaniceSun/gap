@@ -26,7 +26,7 @@ def get_parser():
     p3.add_argument('--pruning', type=str, default='True', help='remove variants that are highly correlated')
     p3.add_argument('--pruning_params', type=str, default='50,5,0.2', help='window size, step size, r2 threshold for pruning')
     p3.add_argument('--pca', type=str, default='True', help='dimensionality reduction using PCA')
-    p3.add_argument('--pca_params', type=str, default='50', help='first n principal components to keep')
+    p3.add_argument('--n_pca', type=int, default=50, help='first n principal components to keep')
     p3.add_argument('--threads', type=int, default=4, help='number of threads to use')
 
     p4 = subparsers.add_parser('add-labels', help='add ancestry labels to the feature matrix')
@@ -68,6 +68,7 @@ def get_parser():
     p9.add_argument('--input_p', type=str, default='data/Predicted_Population.txt', help='the predicted results for Population')
     p9.add_argument('--conditional', type=str, default='True', help='if using the conditional models for Population')
     p9.add_argument('--outfile', type=str, default='GenetcicAncestry.txt', help='the output summary file combining both predictions')
+
     return parser
 
 
@@ -83,9 +84,8 @@ def main():
         pruning = (args.pruning.lower() == 'true')
         pruning_params = [float(x) for x in args.pruning_params.split(',')]
         pca = (args.pca.lower() == 'true')
-        pca_params = [int(x) for x in args.pca_params.split(',')]
         an.feature_engineering(in_file=args.input, out_file=args.output, pruning=pruning, pruning_params=pruning_params,
-                               pca=pca, pca_params=pca_params, threads=args.threads)
+                               pca=pca, n_pcs=args.n_pcs, threads=args.threads)
     elif args.command == 'add-labels':
         an.add_labels(in_file=args.feature_file, label_file=args.label_file)
     elif args.command == 'split-train-test':
@@ -182,7 +182,6 @@ def main():
         conditional = (args.conditional.lower() == 'true')
         out_file = args.outfile
         an.get_summary_table(in_file_sp=args.input_sp, in_file_p=args.input_p, out_file=out_file, conditional=conditional)
-
 
 if __name__ == '__main__':
     main()
