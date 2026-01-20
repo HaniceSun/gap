@@ -26,7 +26,7 @@ def get_parser():
     p3.add_argument('--pruning', type=str, default='True', help='remove variants that are highly correlated')
     p3.add_argument('--pruning_params', type=str, default='50,5,0.2', help='window size, step size, r2 threshold for pruning')
     p3.add_argument('--pca', type=str, default='True', help='dimensionality reduction using PCA')
-    p3.add_argument('--n_pca', type=int, default=50, help='first n principal components to keep')
+    p3.add_argument('--n_pcs', type=int, default=50, help='first n principal components to keep')
     p3.add_argument('--threads', type=int, default=4, help='number of threads to use')
 
     p4 = subparsers.add_parser('add-labels', help='add ancestry labels to the feature matrix')
