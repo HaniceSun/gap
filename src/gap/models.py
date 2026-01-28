@@ -8,7 +8,6 @@ import time
 import datetime
 from zoneinfo import ZoneInfo
 from itertools import product
-from importlib import resources
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import mutual_info_classif
@@ -34,13 +33,12 @@ from sklearn.svm import SVR
 from sklearn.neural_network import MLPClassifier
 from sklearn.neural_network import MLPRegressor
 from sklearn.calibration import CalibratedClassifierCV
-
+from .utils import *
 
 class GapLearn():
     def __init__(self, task_type='classification', multi_class=True, score_method='roc_auc', feature_standardize=False, feature_select=False, random_state=42):
         self.time_zone = ZoneInfo("America/Los_Angeles")
         self.time_format = '%Y-%m-%d %H:%M:%S'
-        self.config_dir = f'{resources.files("gap").parent}/config'
         self.score_methods = {'roc_auc':roc_auc_score, 'mse':mean_squared_error, 'mae':mean_absolute_error, 'r2':r2_score}
         self.task_type = task_type
         self.multi_class = multi_class
@@ -386,7 +384,7 @@ class GapLearn():
     def load_yaml(self, config_file):
         config = {}
         if not os.path.exists(config_file):
-            config_file = self.config_dir + '/' + config_file
+            config_file = config_dir + '/' + config_file
         config_file = os.path.expanduser(config_file)
         self.log(f'using config {config_file}')
 

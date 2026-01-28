@@ -52,7 +52,7 @@ gap summarize --conditional true
 
 - Superpopulation Prediction vs Self-reported Race in the IIDP cohorts
 
-![](src/data/GenetcicAncestry_vs_race_sankey.png)
+![](src/gap/data/GenetcicAncestry_vs_race_sankey.png)
 
 ## Citation
 

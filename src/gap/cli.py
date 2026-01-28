@@ -1,5 +1,4 @@
 import argparse
-from importlib import resources
 from .ancestry import Ancestry
 from .models import GapLearn
 import os
