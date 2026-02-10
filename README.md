@@ -1,5 +1,5 @@
 <p align="left">
-<img src="assets/logo.png" alt="dustle logo" width="150"/>
+<img src="assets/logo.png" alt="logo" width="200"/>
 </p>
 
 # Genetic Ancestry Prediction (GAP)
