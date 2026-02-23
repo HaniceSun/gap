@@ -6,7 +6,9 @@
 
 ## Overview
 
-GAP is a Python package, developed at the [Translational Genomics Lab](https://med.stanford.edu/genomics-of-diabetes.html) lead by Dr. Anna Gloyn at Stanford University, for predicting genetic ancestry from genotyping data using machine learning techniques. It provides tools for data preprocessing, model training, and evaluation to facilitate accurate ancestry inference. It shows superior performance compared to existing methods in ADMIXTURE and KING package when benchmarking against self-reported races from [Integrated Islet Distribution Program (IIDP)](https://iidp.coh.org/) and [The Human Pancreas Analysis Program (HPAP)](https://hpap.pmacs.upenn.edu/). GAP has been supported by both IIDP and the Stanford [Accelerate Innovation in Diabetes LeVeraging Unique PAthways iN Asians (ADVANCE)](https://asianhealth.stanford.edu/advance) Program.
+GAP is a Python package, developed at the [Translational Genomics Lab](https://med.stanford.edu/genomics-of-diabetes.html) lead by Dr. Anna Gloyn at Stanford University, for predicting genetic ancestry from genotyping data using machine learning techniques. It provides tools for data preprocessing, model training, and evaluation to facilitate accurate ancestry inference. It shows superior performance compared to existing methods in ADMIXTURE and KING package when benchmarking against self-reported races from [Integrated Islet Distribution Program (IIDP)](https://iidp.coh.org/) and [The Human Pancreas Analysis Program (HPAP)](https://hpap.pmacs.upenn.edu/). 
+
+GAP has been supported by both IIDP and the Stanford [Accelerate Innovation in Diabetes LeVeraging Unique PAthways iN Asians (ADVANCE)](https://asianhealth.stanford.edu/advance) Program.
 
 ## Pipeline
 ![](assets/pipeline.png)
