@@ -302,6 +302,56 @@ class Ancestry:
             df.to_csv(out_file_cond, header=True, index=False, sep='\t')
             print(f"Genetic ancestry (conditional) table saved to {out_file_cond}")
 
+    def format_table(self, in_file='GenetcicAncestry.txt', labels_dir='data', fmt='IIDP'):
+        D = {}
+        for f in os.listdir(labels_dir):
+            if f.startswith('labels_Population_within_') and f.endswith('.txt'):
+                df = pd.read_table(os.path.join(labels_dir, f), header=0, sep='\t')
+                for n in range(df.shape[0]):
+                    p = df.iloc[n, 0]
+                    sp = f.split('labels_Population_within_')[1].split('.txt')[0]
+                    D[p] = sp
+
+        out_file = in_file.replace('.txt', f'_{fmt}.txt')
+        df = pd.read_table(in_file, header=0, sep='\t')
+        if fmt == 'IIDP':
+            df_formatted = pd.DataFrame()
+            df_formatted['Sample'] = df['SampleID']
+            df_formatted['SuperpopulationClass'] = df['Superpopulation']
+            df_formatted['PopulationClass'] = df['Population']
+
+            L = []
+            for n in range(df.shape[0]):
+                sp = df['Superpopulation'].iloc[n]
+                p = df['Population'].iloc[n]
+                consistency = 'Consistent' if D.get(p) == sp else 'InConsistent'
+                L.append(consistency)
+            df_formatted['PredictionConsistency'] = L
+
+            L = []
+            for n in range(df.shape[0]):
+                V = []
+                for m in range(3, 8):
+                    pop = df.columns[m]
+                    V.append(f"{pop}:{df.iloc[n, m]:.4f}")
+                L.append('|'.join(V))
+            df_formatted['SuperPopulationPossibility'] = L
+
+            L = []
+            for n in range(df.shape[0]):
+                V = []
+                for m in range(8, df.shape[1]):
+                    pop = df.columns[m]
+                    V.append(f"{pop}:{df.iloc[n, m]:.4f}")
+                L.append('|'.join(V))
+            df_formatted['PopulationPossibility'] = L
+
+            df_formatted.to_csv(out_file, header=True, index=False, sep='\t')
+
+        else:
+            print(f"Format {fmt} not recognized. No formatting applied.")
+            return
+
     def _benchmark_against_self_reported_race(self, in_file, in_file2, cols=['SampleID', 'ID', 'Superpopulation', 'Race']):
         df = pd.read_table(in_file, header=0, sep='\t')
         df2 = pd.read_table(in_file2, header=0, sep='\t')

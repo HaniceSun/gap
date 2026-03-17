@@ -68,6 +68,11 @@ def get_parser():
     p9.add_argument('--conditional', type=str, default='True', help='if using the conditional models for Population')
     p9.add_argument('--outfile', type=str, default='GenetcicAncestry.txt', help='the output summary file combining both predictions')
 
+    p10 = subparsers.add_parser('format-table', help='convert the table to a specific format, internal use only')
+    p10.add_argument('--input', type=str, default='GenetcicAncestry.txt', help='the input summary file')
+    p10.add_argument('--labels_dir', type=str, default='data', help='the directory containing the label files')
+    p10.add_argument('--fmt', type=str, default='IIDP', help='the output format')
+
     return parser
 
 
@@ -181,6 +186,9 @@ def main():
         conditional = (args.conditional.lower() == 'true')
         out_file = args.outfile
         an.get_summary_table(in_file_sp=args.input_sp, in_file_p=args.input_p, out_file=out_file, conditional=conditional)
+
+    elif args.command == 'format-table':
+        an.format_table(in_file=args.input, labels_dir=args.labels_dir, fmt=args.fmt)
 
 if __name__ == '__main__':
     main()
