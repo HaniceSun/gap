@@ -29,9 +29,9 @@ conda activate gap
 ```
 input_vcf='INPUT.vcf.gz'
 
-# using get-reference-data to download the 1000 Genomes reference data the first time you run GAP.
+# Using get-reference-data to download the 1000 Genomes reference data the first time you run GAP.
 # It will take a while to download and process the 30+ GB data.
-# skip this step if you have already downloaded the reference data and provide the paths as parameters:
+# Skip this step if you have already downloaded the reference data and provide the paths as parameters:
 # --reference ref/1000genomes_unrelated.vcf.gz when using merge-dataset-with-reference 
 # --label_file ref/1000genomes_unrelated_sampleInfo.txt when using add-labels
 
