@@ -29,12 +29,16 @@ conda activate gap
 ```
 input_vcf='INPUT.vcf.gz'
 
-gap get-reference-data --output_dir=data (only needed the first time)
+# using get-reference-data to download the 1000 Genomes reference data the first time you run GAP. It will take a while to download and process the 30+ GB data.
+# skip this step if you have already downloaded the reference data and provide the paths as parameters
+# (--reference ref/1000genomes_unrelated.vcf.gz in merge-dataset-with-reference and --label_file ref/1000genomes_unrelated_sampleInfo.txt in add-labels)
 
-gap merge-dataset-with-reference --dataset $input_vcf
+gap get-reference-data --output_dir=ref
+
+gap merge-dataset-with-reference --dataset $input_vcf --reference ref/1000genomes_unrelated.vcf.gz
 gap feature-engineering
 
-gap add-labels
+gap add-labels --label_file ref/1000genomes_unrelated_sampleInfo.txt
 gap split-train-test --test_size 0.2
 
 gap train-model --task Superpopulation

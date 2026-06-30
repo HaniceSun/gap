@@ -11,11 +11,11 @@ def get_parser():
 
     p1 = subparsers.add_parser("get-reference-data", help="get reference data with ancestry labeled")
     p1.add_argument('--source', type=str, default='1000genomes', help='data source to download from')
-    p1.add_argument('--output_dir', type=str, default='data', help='output directory to save the downloaded data')
+    p1.add_argument('--output_dir', type=str, default='ref', help='output directory to save the downloaded data')
 
     p2 = subparsers.add_parser('merge-dataset-with-reference', help='merge your dataset with the reference data')
     p2.add_argument('--dataset', type=str, required=True, help='your input vcf file, must be on GRCh38 build and the REF allele must be consistent with the reference genome')
-    p2.add_argument('--reference', type=str, default='data/1000genomes_unrelated.vcf.gz', help='the vcf file of the reference data downloaded previously')
+    p2.add_argument('--reference', type=str, default='ref/1000genomes_unrelated.vcf.gz', help='the vcf file of the reference data downloaded previously')
     p2.add_argument('--output', type=str, default='data/merged', help='the merged file, prefix only')
     p2.add_argument('--threads', type=int, default=4, help='number of threads to use')
 

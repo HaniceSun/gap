@@ -18,7 +18,7 @@ class Ancestry:
 
         self.chs = [f'chr{i}' for i in range(1, 23)]
 
-    def get_reference_data(self, out_dir='data', source='1000genomes', url=None, unrelated_samples_only=True):
+    def get_reference_data(self, out_dir='ref', source='1000genomes', url=None, unrelated_samples_only=True):
         if not os.path.exists(out_dir):
             os.makedirs(out_dir)
 
@@ -52,6 +52,10 @@ class Ancestry:
 
     def merge_dataset_with_reference(self, dataset_vcf, reference_vcf, out_file, threads=1):
         try:
+            out_dir = os.path.dirname(out_file)
+            if not os.path.exists(out_dir):
+                os.makedirs(out_dir)
+
             dataset_bed = dataset_vcf.split('.vcf')[0]
             reference_bed = reference_vcf.split('.vcf')[0]
 
@@ -133,7 +137,7 @@ class Ancestry:
         except Exception as e:
             print(f"Error in feature engineering: {e}")
 
-    def add_labels(self, in_file='data/features.txt', label_file='data/1000genomes_unrelated_sampleInfo.txt'):
+    def add_labels(self, in_file='data/features.txt', label_file='ref/1000genomes_unrelated_sampleInfo.txt'):
         D = {}
         df_labels = pd.read_table(label_file, header=0, sep='\t')
         for n in range(df_labels.shape[0]):
