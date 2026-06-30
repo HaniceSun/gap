@@ -116,10 +116,10 @@ class Ancestry:
                 subprocess.run(cmd, shell=True, check=True)
                 cmd = f'plink --keep-allele-order --bfile {in_file} --extract {in_file}.prune.in --make-bed --out {out_file_bed} --threads {threads}'
                 subprocess.run(cmd, shell=True, check=True)
-                infile = out_file_bed
+                in_file = out_file_bed
 
             if pca:
-                cmd = f'plink --bfile {infile} --pca {n_pcs} --out {out_file_pca} --threads {threads}'
+                cmd = f'plink --bfile {in_file} --pca {n_pcs} --out {out_file_pca} --threads {threads}'
                 subprocess.run(cmd, shell=True, check=True)
                 print(f"PCA results saved to {out_file_pca}.eigenvec")
 
