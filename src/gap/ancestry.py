@@ -63,16 +63,11 @@ class Ancestry:
                 print(f"{dataset_bed} bed/bim/fam already exist. Skipping conversion from vcf.")
             else:
                 try:
-                    cmd = f'plink --keep-allele-order --vcf {dataset_vcf} --make-bed --out {dataset_bed} --threads {threads}'
+                    cmd = f'plink --keep-allele-order --double-id --vcf {dataset_vcf} --make-bed --out {dataset_bed} --threads {threads}'
                     subprocess.run(cmd, shell=True, check=True)
                 except:
-                        print(f"Error converting {dataset_vcf} to bed. Multiple instances of '_' in sample ID. Trying with --double-id option.")
-                        try:
-                            cmd += ' --double-id'
-                            subprocess.run(cmd, shell=True, check=True)
-                        except Exception as e:
-                            print(f"Error converting {dataset_vcf} to bed with --double-id option: {e}")
-                            return
+                    print(f"Error converting {dataset_vcf} to bed.")
+                    return
             if os.path.exists(reference_bed + '.bed') and os.path.exists(reference_bed + '.bim') and os.path.exists(reference_bed + '.fam'):
                 print(f"{reference_bed} bed/bim/fam already exist. Skipping conversion from vcf.")
             else:
@@ -96,6 +91,14 @@ class Ancestry:
 
             cmd = f'plink --keep-allele-order --bfile {reference_extracted_bed} --bmerge {dataset_extracted_bed} --make-bed --out {out_file} --threads {threads}'
             subprocess.run(cmd, shell=True, check=True)
+
+            os.remove(dataset_extracted_bed + '.bed')
+            os.remove(dataset_extracted_bed + '.bim')
+            os.remove(dataset_extracted_bed + '.fam')
+            os.remove(reference_extracted_bed + '.bed')
+            os.remove(reference_extracted_bed + '.bim')
+            os.remove(reference_extracted_bed + '.fam')
+            os.remove(shared_variants_file)
         except Exception as e:
             print(f"Error merging VCFs: {e}")
 
