@@ -243,6 +243,9 @@ class Ancestry:
             subprocess.run(cmd, check=True)
             subprocess.run(['bcftools', 'index', out_vcf], check=True)
             print(f"Combined VCF saved to {out_vcf}")
+            for vcf in vcf_list:
+                os.remove(vcf)
+                os.remove(vcf + '.tbi')
         except Exception as e:
             print(f"Error concatenating VCFs: {e}")
 
