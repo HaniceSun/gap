@@ -50,7 +50,7 @@ class Ancestry:
                 extracted_file = os.path.join(out_dir, f'{source}_unrelated.vcf.gz')
                 self._extract_samples(out_vcf, sampleID_file, extracted_file)
 
-    def merge_dataset_with_reference(self, dataset_vcf, reference_vcf, out_file, threads=1):
+    def merge_dataset_with_reference(self, dataset_vcf, reference_vcf, out_file, threads=4):
         try:
             out_dir = os.path.dirname(out_file)
             if not os.path.exists(out_dir):

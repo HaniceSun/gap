@@ -30,7 +30,7 @@ def get_parser():
 
     p4 = subparsers.add_parser('add-labels', help='add ancestry labels to the feature matrix')
     p4.add_argument('--feature_file', type=str, default='data/features.txt', help='the feature matrix file')
-    p4.add_argument('--label_file', type=str, default='data/1000genomes_unrelated_sampleInfo.txt', help='the file containing ancestry labels for the reference samples')
+    p4.add_argument('--label_file', type=str, default='ref/1000genomes_unrelated_sampleInfo.txt', help='the file containing ancestry labels for the reference samples')
 
     p5 = subparsers.add_parser('split-train-test', help='split the dataset into train and test sets')
     p5.add_argument('--input', type=str, default='data/features.txt', help='the input file with features and labels')
