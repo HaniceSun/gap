@@ -62,9 +62,17 @@ class Ancestry:
             if os.path.exists(dataset_bed + '.bed') and os.path.exists(dataset_bed + '.bim') and os.path.exists(dataset_bed + '.fam'):
                 print(f"{dataset_bed} bed/bim/fam already exist. Skipping conversion from vcf.")
             else:
-                cmd = f'plink --keep-allele-order --vcf {dataset_vcf} --make-bed --out {dataset_bed} --threads {threads}'
-                subprocess.run(cmd, shell=True, check=True)
-
+                try:
+                    cmd = f'plink --keep-allele-order --vcf {dataset_vcf} --make-bed --out {dataset_bed} --threads {threads}'
+                    subprocess.run(cmd, shell=True, check=True)
+                except:
+                        print(f"Error converting {dataset_vcf} to bed. Multiple instances of '_' in sample ID. Trying with --double-id option.")
+                        try:
+                            cmd += ' --double-id'
+                            subprocess.run(cmd, shell=True, check=True)
+                        except Exception as e:
+                            print(f"Error converting {dataset_vcf} to bed with --double-id option: {e}")
+                            return
             if os.path.exists(reference_bed + '.bed') and os.path.exists(reference_bed + '.bim') and os.path.exists(reference_bed + '.fam'):
                 print(f"{reference_bed} bed/bim/fam already exist. Skipping conversion from vcf.")
             else:
