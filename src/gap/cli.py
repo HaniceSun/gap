@@ -17,7 +17,7 @@ def get_parser():
     p2.add_argument('--dataset', type=str, required=True, help='your input vcf file, must be on GRCh38 build and the REF allele must be consistent with the reference genome')
     p2.add_argument('--reference', type=str, default='ref/1000genomes_unrelated.vcf.gz', help='the vcf file of the reference data downloaded previously')
     p2.add_argument('--output', type=str, default='data/merged', help='the merged file, prefix only')
-    p2.add_argument('--threads', type=int, default=4, help='number of threads to use')
+    p2.add_argument('--threads', type=int, default=2, help='number of threads to use')
 
     p3 = subparsers.add_parser('feature-engineering', help='feature engineering for ancestry prediction')
     p3.add_argument('--input', type=str, default='data/merged', help='the merged file from the previous step, prefix only')
@@ -26,7 +26,7 @@ def get_parser():
     p3.add_argument('--pruning_params', type=str, default='50,5,0.2', help='window size, step size, r2 threshold for pruning')
     p3.add_argument('--pca', type=str, default='True', help='dimensionality reduction using PCA')
     p3.add_argument('--n_pcs', type=int, default=50, help='first n principal components to keep')
-    p3.add_argument('--threads', type=int, default=4, help='number of threads to use')
+    p3.add_argument('--threads', type=int, default=2, help='number of threads to use')
 
     p4 = subparsers.add_parser('add-labels', help='add ancestry labels to the feature matrix')
     p4.add_argument('--feature_file', type=str, default='data/features.txt', help='the feature matrix file')

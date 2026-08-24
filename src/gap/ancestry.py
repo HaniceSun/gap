@@ -50,7 +50,7 @@ class Ancestry:
                 extracted_file = os.path.join(out_dir, f'{source}_unrelated.vcf.gz')
                 self._extract_samples(out_vcf, sampleID_file, extracted_file)
 
-    def merge_dataset_with_reference(self, dataset_vcf, reference_vcf, out_file, threads=2):
+    def merge_dataset_with_reference(self, dataset_vcf, reference_vcf, out_file, threads=4):
         try:
             out_dir = os.path.dirname(out_file)
             if not os.path.exists(out_dir):
@@ -121,7 +121,7 @@ class Ancestry:
         except Exception as e:
             print(f"Error getting shared variants: {e}")
 
-    def feature_engineering(self, in_file, out_file='data/features.txt', pruning=True, pruning_params=[50, 5, 0.2], pca=True, n_pcs=50, threads=1):
+    def feature_engineering(self, in_file, out_file='data/features.txt', pruning=True, pruning_params=[50, 5, 0.2], pca=True, n_pcs=50, threads=4):
         out_file_bed = f'{in_file}_pruned'
         out_file_pca = f'{in_file}_pca'
         infile = in_file
