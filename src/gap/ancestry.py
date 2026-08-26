@@ -34,8 +34,10 @@ class Ancestry:
                     try:
                         cmd = f'wget {in_file} -O {out_file}'
                         cmd_idx = f'wget {in_file_idx} -O {out_file_idx}'
-                        subprocess.run(cmd, shell=True, check=True)
-                        subprocess.run(cmd_idx, shell=True, check=True)
+                        print(cmd)
+                        subprocess.run(cmd, shell=True)
+                        print(cmd_idx)
+                        subprocess.run(cmd_idx, shell=True)
                         vcfs.append(out_file)
                     except Exception as e:
                         print(f"Error downloading {in_file}: {e}")
