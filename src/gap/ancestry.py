@@ -32,13 +32,20 @@ class Ancestry:
                     out_file = os.path.join(out_dir, f'{source}_{ch}.vcf.gz')
                     out_file_idx = os.path.join(out_dir, f'{source}_{ch}.vcf.gz.tbi')
                     try:
-                        cmd = f'curl {in_file} -o {out_file}'
-                        cmd_idx = f'curl {in_file_idx} -o {out_file_idx}'
+                        cmd = f'wget {in_file} -O {out_file}'
+                        cmd_idx = f'wget {in_file_idx} -O {out_file_idx}'
                         subprocess.run(cmd, shell=True, check=True)
                         subprocess.run(cmd_idx, shell=True, check=True)
                         vcfs.append(out_file)
                     except Exception as e:
                         print(f"Error downloading {in_file}: {e}")
+
+            for ch in self.chs:
+                in_file = os.path.join(out_dir, f'{source}_{ch}.vcf.gz')
+                in_file_idx = in_file + '.tbi'
+                if not os.path.exists(in_file) or not os.path.exists(in_file_idx):
+                    print(f"{in_file} or {in_file_idx} not found. Please check the download.")
+                    return
 
             out_vcf = os.path.join(out_dir, f'{source}.vcf.gz')
             self._concat_vcfs(vcfs, out_vcf)
