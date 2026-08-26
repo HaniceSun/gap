@@ -31,16 +31,20 @@ class Ancestry:
                     in_file_idx = in_file + '.tbi'
                     out_file = os.path.join(out_dir, f'{source}_{ch}.vcf.gz')
                     out_file_idx = os.path.join(out_dir, f'{source}_{ch}.vcf.gz.tbi')
-                    try:
-                        cmd = f'wget {in_file} -O {out_file}'
-                        cmd_idx = f'wget {in_file_idx} -O {out_file_idx}'
-                        print(cmd)
-                        subprocess.run(cmd, shell=True)
-                        print(cmd_idx)
-                        subprocess.run(cmd_idx, shell=True)
+                    if os.path.exists(out_file) and os.path.exists(out_file_idx):
+                        print(f"{out_file} and {out_file_idx} already exist. Skipping download.")
                         vcfs.append(out_file)
-                    except Exception as e:
-                        print(f"Error downloading {in_file}: {e}")
+                    else:
+                        try:
+                            cmd = f'wget {in_file} -O {out_file}'
+                            cmd_idx = f'wget {in_file_idx} -O {out_file_idx}'
+                            print(cmd)
+                            subprocess.run(cmd, shell=True)
+                            print(cmd_idx)
+                            subprocess.run(cmd_idx, shell=True)
+                            vcfs.append(out_file)
+                        except Exception as e:
+                            print(f"Error downloading {in_file}: {e}")
 
             for ch in self.chs:
                 in_file = os.path.join(out_dir, f'{source}_{ch}.vcf.gz')
@@ -252,9 +256,6 @@ class Ancestry:
             subprocess.run(cmd, check=True)
             subprocess.run(['bcftools', 'index', out_vcf], check=True)
             print(f"Combined VCF saved to {out_vcf}")
-            for vcf in vcf_list:
-                os.remove(vcf)
-                os.remove(vcf + '.tbi')
         except Exception as e:
             print(f"Error concatenating VCFs: {e}")
 
