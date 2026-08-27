@@ -257,14 +257,15 @@ class Ancestry:
                 print(f"Population train data within {pop} saved to {train_f}")
                 print(f"Population test data within {pop} saved to {test_f}")
 
-    def _concat_vcfs(self, vcf_list, out_vcf, remove_downloaded=False):
+    def _concat_vcfs(self, vcf_list, out_vcf, remove_downloaded=True):
         try:
+            print(f'Concatenating VCFs into {out_vcf}', flush=True)
             cmd = ['bcftools', 'concat', '-Oz', '-o', out_vcf] + vcf_list
             res1 = subprocess.run(cmd, check=True, capture_output=True)
             cmd = ['bcftools', 'index', out_vcf]
             res2 = subprocess.run(cmd, check=True, capture_output=True)
             if res1.returncode == 0 and res2.returncode == 0:
-                print(f"Combined VCF saved to {out_vcf}")
+                print(f"Concatenated VCF saved to {out_vcf}")
                 if remove_downloaded:
                     for f in vcf_list:
                         f2 = f + '.tbi'
