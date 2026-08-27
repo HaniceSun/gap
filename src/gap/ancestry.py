@@ -38,9 +38,9 @@ class Ancestry:
                         try:
                             cmd = f'wget {in_file} -O {out_file}'
                             cmd_idx = f'wget {in_file_idx} -O {out_file_idx}'
-                            print(cmd)
+                            print(cmd, flush=True)
                             subprocess.run(cmd, shell=True)
-                            print(cmd_idx)
+                            print(cmd_idx, flush=True)
                             subprocess.run(cmd_idx, shell=True)
                             vcfs.append(out_file)
                         except Exception as e:
