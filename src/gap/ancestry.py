@@ -50,8 +50,15 @@ class Ancestry:
                 in_file = os.path.join(out_dir, f'{source}_{ch}.vcf.gz')
                 in_file_idx = in_file + '.tbi'
                 if not os.path.exists(in_file) or not os.path.exists(in_file_idx):
-                    print(f"{in_file} or {in_file_idx} not found. Please check the download.")
-                    return
+                    raise ValueError(f"{in_file} or {in_file_idx} not found.")
+                else:
+                    for f in [in_file, in_file_idx]:
+                        cmd = f'gzip -t {f}'
+                        result = subprocess.run(cmd, capture_output=True, text=True, shell=True)
+                        if result.returncode != 0:
+                            raise ValueError(f"{f} is not a valid gzip file. Please remove the file and try downloading again.")
+                        else:
+                            print(f"{f} is valid", flush=True)
 
             out_vcf = os.path.join(out_dir, f'{source}.vcf.gz')
             self._concat_vcfs(vcfs, out_vcf)
@@ -250,12 +257,23 @@ class Ancestry:
                 print(f"Population train data within {pop} saved to {train_f}")
                 print(f"Population test data within {pop} saved to {test_f}")
 
-    def _concat_vcfs(self, vcf_list, out_vcf):
+    def _concat_vcfs(self, vcf_list, out_vcf, remove_downloaded=False):
         try:
             cmd = ['bcftools', 'concat', '-Oz', '-o', out_vcf] + vcf_list
-            subprocess.run(cmd, check=True)
-            subprocess.run(['bcftools', 'index', out_vcf], check=True)
-            print(f"Combined VCF saved to {out_vcf}")
+            res1 = subprocess.run(cmd, check=True, capture_output=True)
+            cmd = ['bcftools', 'index', out_vcf]
+            res2 = subprocess.run(cmd, check=True, capture_output=True)
+            if res1.returncode == 0 and res2.returncode == 0:
+                print(f"Combined VCF saved to {out_vcf}")
+                if remove_downloaded:
+                    for f in vcf_list:
+                        f2 = f + '.tbi'
+                        if os.path.exists(f):
+                            os.remove(f)
+                        if os.path.exists(f2):
+                            os.remove(f2)
+            else:
+                raise ValueError(f"Error concatenating VCFs")
         except Exception as e:
             print(f"Error concatenating VCFs: {e}")
 
