@@ -45,6 +45,7 @@ class Utils:
         for ef in extra_files:
             if not os.path.exists(ef):
                 raise ValueError(f'{ef} does not exist. Please check the path.')
+            source = ('Oxford' if ef.find('Oxford') != -1 else 'Stanford')
             df_extra = pd.read_table(ef, header=None, sep='\t')
             D = {}
             for n in range(df_extra.shape[0]):
@@ -54,11 +55,12 @@ class Utils:
                 batch = df_extra.iloc[n, 3]
                 sex = df_extra.iloc[n, 4]
                 k = f'{fid}_{iid}'
-                D[k] = [array, batch, sex]
-            v = ['.', '.', '.']
+                D[k] = [array, batch, sex, source]
+            v = ['.', '.', '.', '.']
             df['Array'] = [D.get(s, v)[0] for s in df['SampleID']]
             df['Batch'] = [D.get(s, v)[1] for s in df['SampleID']]
             df['Sex'] = [D.get(s, v)[2] for s in df['SampleID']]
+            df['Source'] = [D.get(s, v)[3] for s in df['SampleID']]
 
         # adding SampleName
         D = {}
