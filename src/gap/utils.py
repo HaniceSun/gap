@@ -42,12 +42,12 @@ class Utils:
             df['QC'] = ['PASS' if s in qc_samples else 'FAIL' for s in df['SampleID']]
 
         # adding Sex, Array, Source, Batch
+        D = {}
         for ef in extra_files:
             if not os.path.exists(ef):
                 raise ValueError(f'{ef} does not exist. Please check the path.')
             source = ('Oxford' if ef.find('Oxford') != -1 else 'Stanford')
             df_extra = pd.read_table(ef, header=None, sep='\t')
-            D = {}
             for n in range(df_extra.shape[0]):
                 fid = df_extra.iloc[n, 0]
                 iid = df_extra.iloc[n, 1]
@@ -56,11 +56,12 @@ class Utils:
                 sex = df_extra.iloc[n, 4]
                 k = f'{fid}_{iid}'
                 D[k] = [array, batch, sex, source]
-            v = ['.', '.', '.', '.']
-            df['Array'] = [D.get(s, v)[0] for s in df['SampleID']]
-            df['Batch'] = [D.get(s, v)[1] for s in df['SampleID']]
-            df['Sex'] = [D.get(s, v)[2] for s in df['SampleID']]
-            df['Source'] = [D.get(s, v)[3] for s in df['SampleID']]
+
+        v = ['.', '.', '.', '.']
+        df['Array'] = [D.get(s, v)[0] for s in df['SampleID']]
+        df['Batch'] = [D.get(s, v)[1] for s in df['SampleID']]
+        df['Sex'] = [D.get(s, v)[2] for s in df['SampleID']]
+        df['Source'] = [D.get(s, v)[3] for s in df['SampleID']]
 
         # adding SampleName
         D = {}
